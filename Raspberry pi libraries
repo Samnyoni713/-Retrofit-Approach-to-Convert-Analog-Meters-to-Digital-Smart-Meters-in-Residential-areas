@@ -1,0 +1,10 @@
+import numpy as np
+import pytesseract
+import cv2
+import imutils
+import time
+import datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from picamera import PiCamera
+from time import sleep
