@@ -1,0 +1,10 @@
+#obtain actual consumption values 
+actual_con = []
+v=0
+actual_con.append(v)
+
+for i in range(1,len(database)):
+    x = database[i] - database[i-1]
+    actual_con.append(x)
+
+print(actual_con)
