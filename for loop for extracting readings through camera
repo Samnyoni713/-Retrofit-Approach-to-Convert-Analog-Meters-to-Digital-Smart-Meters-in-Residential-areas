@@ -1,0 +1,90 @@
+from array import *
+#database array stores readings and tor=array storing "time of reading" 
+database=[]
+tor=[]
+
+#begin for loop
+for i in range(5):
+#set time
+   e = datetime.datetime.now()
+   
+   img = cv2.imread("image2.jpg")
+   rows, cols, _ = img.shape
+
+   cv2.rectangle(img, (1080, 330), (100, 162), (0, 255, 0), 3)
+   roi = img[160:330,110:1080]
+   img = cv2.resize(img, (400, 400))
+   cv2.imshow("Image", img)
+   cv2.imshow("Roi", roi)
+   image = roi
+
+# load the input image and convert it to grayscale
+   gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+# threshold the image using Otsu's thresholding method
+   edged = cv2.Canny(gray, 30, 200)
+
+   thresh = cv2.threshold(gray, 0, 255,
+   cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+   cv2.imshow("Otsu", thresh)
+   img = cv2.resize(thresh, (400, 400))
+# apply a distance transform which calculates the distance to the
+# closest zero pixel for each pixel in the input image
+   dist = cv2.distanceTransform(thresh, cv2.DIST_L2, 5)
+# normalize the distance transform such that the distances lie in
+# the range [0, 1] and then convert the distance transform back to
+# an unsigned 8-bit integer in the range [0, 255]
+   dist = cv2.normalize(dist, dist, 0, 1.0, cv2.NORM_MINMAX)
+   dist = (dist * 255).astype("uint8")
+   cv2.imshow("Dist", dist)
+   img = cv2.resize(dist, (400, 400))
+# threshold the distance transform using Otsu's method
+   dist = cv2.threshold(dist, 0, 255,
+   cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+   cv2.imshow("Dist Otsu", dist)
+   kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+   opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+
+# find contours in the opening image, then initialize the list of
+# contours which belong to actual characters that we will be OCR'ing
+   cnts = cv2.findContours(opening.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+   cnts = imutils.grab_contours(cnts)
+   chars = []
+   for c in cnts:
+       (x, y, w, h) = cv2.boundingRect(c)
+       if w >= 20 and h >= 25:
+          chars.append(c)
+
+   chars = np.vstack([chars[i] for i in range(0, len(chars))])
+   hull = cv2.convexHull(chars)
+
+   mask = np.zeros(gray.shape,np.uint8)
+   cv2.drawContours(mask, [hull], -1, 255, -1)
+   mask = cv2.dilate(mask, None, iterations=2)
+
+   cv2.imshow("Mask", mask)
+   img = cv2.resize(mask, (400, 400))
+# take the bitwise of the opening image and the mask to reveal *just*
+# the characters in the image
+   final = cv2.bitwise_and(opening, opening, mask=mask)
+   options = "--psm 8 -c tessedit_char_whitelist=0123456789"  
+   text = pytesseract.image_to_string(final, config=options)
+   number=int(text)
+   print("KWh reading taken at ""%s:%s" % (e.hour, e.minute),"is:",text)
+   
+   # show the final output image
+   cv2.imshow("Final", final)
+   
+#oping,cv confusing
+   thekey = cv2.waitKey(0)
+   if thekey == ord('q'):
+       cv2.destroyAllWindows()
+       
+   time.sleep(5);
+   #assign iterations to their respective arrays 
+   database.append(number)
+   tor.append(e)
+#for loop complete now time to implement on image 
+
+#print array content 
+print(database)
+print(tor)
