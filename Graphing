@@ -1,0 +1,21 @@
+#assign x & y values 
+x=tor
+y=actual_con
+
+#plot graph and assign type of graph 
+plt.plot([],[])
+plt.plot(x,y)
+
+# format labels 
+plt.gcf().autofmt_xdate()
+myFmt = mdates.DateFormatter('%H:%M')
+plt.gca().xaxis.set_major_formatter(myFmt)
+plt.title('Actual Consumption Vs Time')
+plt.xlabel('Time')
+plt.ylabel('Actual Consumption')
+plt.show()
+plt.close()
+
+#end of code 
+
+
